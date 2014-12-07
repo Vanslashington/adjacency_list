@@ -135,7 +135,7 @@ weightType adjacency_list<dataType, weightType>::
     return bfs(vertexA, vertexB, pathVector);
 }
 
-// Bredth-First Search
+// Breadth-First Search
 template <typename dataType, typename weightType>
 weightType adjacency_list<dataType, weightType>::
     bfs(const dataType& vertexA, const dataType& vertexB)
@@ -151,6 +151,7 @@ weightType adjacency_list<dataType, weightType>::
     {
         dataType vertex = bfsQueue.front().first;
         weightType pathWeight = bfsQueue.front().second;
+
         int index = indexMap[vertex];
 
         // Check if we've found the end
@@ -160,7 +161,7 @@ weightType adjacency_list<dataType, weightType>::
         // Add all unvisited edges to the queue
         for(typename vector<edge>::iterator i = vertices[index].begin();
                                             i != vertices[index].end(); ++i)
-            if(visited[indexMap[i->vertex]])
+            if(!visited[indexMap[i->vertex]])
             {
                 bfsQueue.push(pair<dataType, weightType>(i->vertex,
                                                          1 + pathWeight));
@@ -170,7 +171,7 @@ weightType adjacency_list<dataType, weightType>::
     }
 }
 
-// Bredth-First Search with path recording
+// Breadth-First Search with path recording
 template <typename dataType, typename weightType>
 weightType adjacency_list<dataType, weightType>::
     bfs(const dataType& vertexA, const dataType& vertexB, 
@@ -227,6 +228,45 @@ template <typename dataType, typename weightType>
 weightType adjacency_list<dataType, weightType>::
     dijkstra(const dataType& vertexA, const dataType& vertexB)
 {
+    // Initialize priority queue 
+    priority_queue<pair<weightType, dataType>, 
+                   vector<pair<weightType, dataType> >,
+                   greater<pair<weightType, dataType> > > dijkstraQueue;
+    vector<bool> visited(size, false);
+    vector<weightType>dist(size, weightType(INT_MAX));
+    dist[indexMap[vertexA]] = 0;
+
+    dijkstraQueue.push(pair<weightType, dataType>(0, vertexA));
+
+    // Greedily relax all the vertices in order of ascending distance
+    while(!dijkstraQueue.empty())
+    {
+        dataType vertex = dijkstraQueue.top().second;
+        weightType distance = dijkstraQueue.top().first;
+
+        int index = indexMap[vertex];
+        dijkstraQueue.pop();
+
+        // If already done, skip
+        if(visited[index] || dist[index] < distance)
+            continue;
+
+        visited[index] = true;
+
+        // Check if it's the target
+        if(vertex == vertexB)
+            return distance;
+
+        // Relax edges
+        typename vector<edge>::iterator i;
+        for(i = vertices[index].begin(); i != vertices[index].end(); ++i)
+            if(distance + i->weight < dist[indexMap[i->vertex]])
+            {
+                dist[indexMap[i->vertex]] = distance + i->weight;
+                dijkstraQueue.push(pair<weightType, dataType>(
+                                              distance + i->weight, i->vertex));
+            }
+    }
 }
 
 // Dijkstra's with path recording
